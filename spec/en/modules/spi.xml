@@ -42,7 +42,7 @@
         <para><literal>getTypes()</literal>, <literal>getQualifiers()</literal>, 
         <literal>getScope()</literal>, <literal>getName()</literal> and
         <literal>getStereotypes()</literal> must return the bean types, qualifiers, 
-        scope type, EL name and stereotypes of the bean, as defined in 
+        scope type, bean name and stereotypes of the bean, as defined in 
         <xref linkend="concepts"/>.</para>
       </listitem>
       <listitem>
@@ -178,8 +178,8 @@
 
       <itemizedlist>
         <listitem>
-          <para><literal>getBeanClass()</literal> returns the bean class of the bean 
-          that declares the observer method.</para>
+          <para><literal>getBeanClass()</literal> returns the class of the type that declares the
+          observer method.</para>
         </listitem>
         <listitem>
           <para><literal>getObservedType()</literal> and <literal>getObservedQualifiers()</literal>
@@ -195,7 +195,7 @@
         </listitem>
         <listitem>
           <para><literal>notify()</literal> calls the observer method, as defined in
-          <xref linkend="observers"/>.</para>
+          <xref linkend="observernotification"/>.</para>
         </listitem>
       </itemizedlist>
       
@@ -228,7 +228,8 @@
           parameters otherwise, as defined in <xref linkend="instantiation"/>,
           and returns the resulting instance. If the class has interceptors, 
           <literal>produce()</literal> is responsible for building the 
-          interceptors and decorators of the instance.</para>
+          interceptors and decorators of the instance. The instance returned
+          by produce may be a proxy.</para>
         </listitem>
        <listitem>
           <para><literal>dispose()</literal> does nothing.</para>
@@ -295,6 +296,11 @@
           EE platform specification.</para>
         </listitem>
       </itemizedlist>
+
+      <para>Implementations of <literal>Producer</literal> and 
+      <literal>InjectionTarget</literal> must ensure that the set of injection points
+      returned by <literal>getInjectionPoints()</literal> are injected 
+      by <literal>produce()</literal> or <literal>inject()</literal>.</para>
       
   </section>
   
@@ -458,15 +464,15 @@
     <title>Obtaining a <literal>Bean</literal> by name</title>
 
     <para>The method <literal>BeanManager.getBeans()</literal> which accepts a string
-    returns the set of beans which have the given EL name and are available for injection
+    returns the set of beans which have the given bean name and are available for injection
     in the module or library containing the class into which the <literal>BeanManager</literal> 
     was injected or the Java EE component from whose JNDI environment namespace the 
-    <literal>BeanManager</literal> was obtained, according to the rules of EL name resolution 
+    <literal>BeanManager</literal> was obtained, according to the rules of name resolution 
     defined in <xref linkend="nameresolution"/>.</para>
 
     <programlisting><![CDATA[public Set<Bean<?>> getBeans(String name);]]></programlisting>
 
-    <para>The parameter is an EL name.</para>
+    <para>The parameter is a bean name.</para>
     
   </section>
   
@@ -616,7 +622,7 @@
       <para>If an instance of an annotation that is not an interceptor binding type is 
       given, an <literal>IllegalArgumentException</literal> is thrown.</para>
 
-    </section>
+  </section>
 
   <section>
     <title>Determining if an annotation is a qualifier type, scope type, stereotype 
@@ -638,6 +644,25 @@ public Set<Annotation> getInterceptorBindingDefinition(Class<? extends Annotatio
 public Set<Annotation> getStereotypeDefinition(Class<? extends Annotation> stereotype);]]></programlisting>
     
   </section>
+
+  <section>
+    <title>Determining the hash code and equivalence of qualifiers and interceptor bindings</title>
+    
+    <para>A portable extension may determine if two qualifiers or two interceptor 
+    bindings are considered equivalent for the purposes of typesafe resolution, 
+    as defined in <xref linkend="performingtypesaferesolution" />.</para>
+    
+    <programlisting><![CDATA[public boolean areQualifiersEquivalent(Annotation qualifier1, Annotation qualifier2);
+public boolean areInterceptorBindingsEquivalent(Annotation interceptorBinding1, Annotation interceptorBinding2);]]></programlisting>
+
+    <para>A portable extension may determine the hash code of a qualifier or and
+    interceptor binding, ignoring any members annotated with <literal>@Nonbinding</literal>.</para>
+    
+    <programlisting><![CDATA[public int getQualifierHashCode(Annotation qualifier);
+public int getInterceptorBindingHashCode(Annotation interceptorBinding);]]></programlisting>
+    
+  </section>
+
   
   <section>
     <title>Obtaining the active <literal>Context</literal> for a scope</title>
@@ -680,12 +705,21 @@ public Set<Annotation> getStereotypeDefinition(Class<? extends Annotation> stere
     
     <para>The method <literal>BeanManager.createAnnotatedType()</literal> returns
     an <literal>AnnotatedType</literal> that may be used to read the annotations
-    of a given Java class or interface. If the <literal>AnnotatedType</literal> for
-    the class has been wrapped or replaced by <literal>ProcessAnnotatedType</literal>
-    then the wrapped or replaced <literal>AnnotatedType</literal> should be returned
-    <literal>BeanManager.createAnnoatedType()</literal>.</para>
+    of the given Java class or interface.</para>
+
+    <para>The methods <literal>BeanManager.getAnnotatedType()</literal> and
+    <literal>BeanManager.getAnnotatedTypes()</literal> returns the 
+    <literal>AnnotatedType</literal>s discovered or added during container 
+    initialization.</para>
+
+    <para>The method <literal>BeanManager.getAnnotatedTypes()</literal> returns
+    the <literal>AnnotatedType</literal>s discovered by or added to the container 
+    during container initialization.</para>
+
     
-    <programlisting><![CDATA[public <T> AnnotatedType<T> createAnnotatedType(Class<T> type);]]></programlisting>
+    <programlisting><![CDATA[public <T> AnnotatedType<T> createAnnotatedType(Class<T> type);
+public <T> AnnotatedType<T> getAnnotatedType(Class<T> type, String id);
+public <T> Iterable<AnnotatedType<T>> getAnnotatedTypes(Class<T> type);]]></programlisting>
     
   </section>
   
@@ -810,12 +844,13 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
     <para>A portable extension may provide an alternative metadata source, such as 
     configuration by XML.</para>
     
-    <para>The interfaces <literal>AnnotatedType</literal>, <literal>AnnotatedField</literal>, 
-    <literal>AnnotatedMethod</literal>, <literal>AnnotatedConstructor</literal> and 
-    <literal>AnnotatedParameter</literal> in the package <literal>javax.enterprise.inject.spi</literal>
-    allow a portable extension to specify metadata that overrides the annotations that
-    exist on a bean class. The portable extension is responsible for implementing the 
-    interfaces, thereby exposing the metadata to the container.</para>
+    <para>The interfaces <literal>AnnotatedType</literal>, <literal>IdentifiedAnnotatedType</literal>,
+    <literal>AnnotatedField</literal>, <literal>AnnotatedMethod</literal>, 
+    <literal>AnnotatedConstructor</literal> and <literal>AnnotatedParameter</literal> in
+    the package <literal>javax.enterprise.inject.spi</literal> allow a portable 
+    extension to specify metadata that overrides the annotations that exist on a bean class. 
+    The portable extension is responsible for implementing the interfaces, thereby exposing
+    the metadata to the container.</para>
     
     <para>In general, the behavior is as defined by the Java Language Specification, and
     only deviations from the Java Language Specification are noted.</para>
@@ -833,18 +868,51 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
 
     <itemizedlist>
       <listitem>
-        <para><literal>getConstructors()</literal> returns all the constructors
-        declared for the type.</para>
+        <para><literal>getConstructors()</literal> returns all default-access, public, 
+        protected or private constructors declared for the type.</para>
       </listitem>
       <listitem>
-        <para><literal>getMethods()</literal> returns all the methods declared
-        on the type and those declared on any supertypes.</para>
+        <para><literal>getMethods()</literal> returns all default-access, public, 
+        protected or private methods declared on the type and those declared on 
+        any supertypes. The container should call 
+        <literal>AnnotatedMethod.getJavaMember().getDeclaringClass()</literal> to 
+        determine the type in the type hierarchy that declared the method.</para>
       </listitem>
       <listitem>
-        <para><literal>getFields()</literal> returns all the fields declared
-        on the type and those declared on any supertypes.</para>
+        <para><literal>getFields()</literal> returns all default-access, public, 
+        protected or private fields declared on the type and those declared on any
+        supertypes.  The container should call 
+        <literal>AnnotatedField.getJavaMember().getDeclaringClass()</literal> to 
+        determine the type in the type hierarchy that declared the field.</para>
       </listitem>
     </itemizedlist>
+
+    <para>When determining annotations on a type, the container must only consider the
+    special inheritance rules defined for scope types in <xref linkend="type-level-inheritance" />.</para>
+
+    <para>The interface <literal>javax.enterprise.inject.spi.IdentifiedAnnotatedType</literal> 
+    allows multiple annotated types, based on the same underlying type, to be defined.</para> 
+    
+    <programlisting><![CDATA[public interface IdentifiedAnnotatedType<X>
+        extends AnnotatedType<X> {
+    public String getId();
+}]]></programlisting>
+
+    <itemizedlist>
+      <listitem>
+        <para><literal>getId()</literal> returns the identifier for the type. 
+        The identifier returned should be unique.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>If an <literal>AnnotatedType</literal> is an instance of 
+    <literal>IdentifiedAnnotatedType</literal> then 
+    <literal>IdentifiedAnnotatedType.getId()</literal> is used to identify the annotated
+    type to the container, otherwise the fully qualified class name of 
+    <literal>AnnotatedType.getJavaClass()</literal> is used to identify the type.
+    <literal>AnnotatedType</literal>s discovered by the container use the fully 
+    qualified class name of <literal>AnnotatedType.getJavaClass()</literal> to identify
+    the type.</para>
     
     <para>The interface <literal>javax.enterprise.inject.spi.AnnotatedField</literal> 
     exposes the <literal>Field</literal> object.</para>
@@ -881,7 +949,8 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
 }]]></programlisting>
 
     <para>The interface <literal>javax.enterprise.inject.spi.AnnotatedMemember</literal> 
-    exposes the <literal>Member</literal> object and the declaring type of the member.</para>
+    exposes the <literal>Member</literal> object and the <literal>AnnotatedType</literal>
+    that defines the member.</para>
 
     <programlisting><![CDATA[public interface AnnotatedMember<X> 
         extends Annotated {
@@ -892,6 +961,11 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
 
     <para>The interface <literal>javax.enterprise.inject.spi.AnnotatedCallable</literal> 
     exposes the parameters of an invokable object.</para>
+
+    <para>Contexts and Dependency Injection for Java EE 1.1 deprecated the method 
+    <literal>AnnotatedMember.isStatic</literal>. The container should instead call
+    <literal>AnnotatedMember.getJavaMember().getModifiers()</literal> to determine if
+    the member is static.</para>
 
     <programlisting><![CDATA[public interface AnnotatedCallable<X> 
         extends AnnotatedMember<X> {
@@ -932,11 +1006,7 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
         or <literal>false</literal> otherwise.</para>
       </listitem>
     </itemizedlist>
-    
-    <para>If the <literal>Annotated</literal> represents a type, then the annotations returned
-    should include all annotations on the type and it's super types regardless of whether the
-    annotation is marked <literal>@Inherited</literal>.</para>
-    
+
     <para>The container must use the operations of <literal>Annotated</literal>
     and its subinterfaces to discover program element types and annotations. The container
     must not directly call the Java Reflection API. In particular, the container must:</para>
@@ -984,10 +1054,11 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
     
     <para>Service providers may have observer methods, which may observe any event, including 
     any container lifecycle event, and obtain an injected <literal>BeanManager</literal> 
-    reference. If other beans are injected into an extension's observer methods, non-portable 
-    behavior results. An extension may use <literal>BeanManager.fireEvent()</literal> to 
-    deliver events to observer methods defined on extensions. The container is not required to
-    deliver events fired during application initialization to observer methods defined on beans.</para>
+    reference. Any decorators associated with <literal>BeanManager</literal> will not be applied.
+    If other beans are injected into an extension's observer methods, non-portable behavior 
+    results. An extension may use <literal>BeanManager.fireEvent()</literal> to deliver events
+    to observer methods defined on extensions. The container is not required to deliver events
+    fired during application initialization to observer methods defined on beans.</para>
 
     <para>The container instantiates a single instance of each extension at the beginning 
     of the application initialization process and maintains a reference to it until the 
@@ -1031,9 +1102,11 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
         </listitem>
         <listitem>
           <para><literal>addAnnotatedType()</literal> adds a given <literal>AnnotatedType</literal>
-          to the set of types which will be scanned during bean discovery. More than one 
-          <literal>AnnotatedType</literal> may use the same base type, and the container must 
-          consider these as different types.</para>
+          to the set of types which will be scanned during bean discovery. If an 
+          <literal>AnnotatedType</literal> with the same identifier already exists in the set of 
+          types the container automatically detects the problem and treats it as a deployment problem.</para>
+          <para>Portable extensions are encouraged to add <literal>IdentifiedAnnotatedType</literal>s
+          in order to not accidentally conflict with discovered types.</para>
         </listitem>
       </itemizedlist>
     
@@ -1202,17 +1275,35 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
     <section id="pat">
       <title><literal>ProcessAnnotatedType</literal> event</title>
       
-      <para>The container must fire an event for each Java class or interface it discovers
-      in a bean archive, and for annotated type added by 
-      <literal>BeforeBeanDiscovery.addAnnotatedType()</literal>, except for those annotated with 
-      <literal>@Vetoed</literal>, before it processes the declared annotations.</para>
+      <para>The container must fire an event, before it processes a type, for each:</para>
       
+      <itemizedlist>
+        <listitem>
+          <para>Java class, interface, enum or annotation discovered in a bean archive,</para>
+        </listitem>
+        <listitem>
+          <para>Annotated type added by <literal>BeforeBeanDiscovery.addAnnotatedType()</literal>,</para>
+        </listitem>
+        <listitem>
+          <para>Annotation added by <literal>BeforeBeanDiscovery.addInterceptorBinding()</literal>,
+          <literal>BeforeBeanDiscovery.addQualifier()</literal>, 
+          <literal>BeforeBeanDiscovery.addScope()</literal> or 
+          <literal>BeforeBeanDiscovery.addStereotype()</literal>.</para>
+        </listitem>
+      </itemizedlist>
+          
+      <para>An event is not fired for any type annotated with <literal>@Vetoed</literal>, or in a 
+      package annotated with <literal>@Vetoed</literal>.</para>
+
       <para>The event object must be of type 
       <literal>javax.enterprise.inject.spi.ProcessAnnotatedType&lt;X&gt;</literal>, 
-      where <literal>X</literal> is the class, for classes and interfaces discovered 
-      in a bean archive, or of type 
+      where <literal>X</literal> is the class, for types discovered  in a bean archive, or of type 
       <literal>javax.enterprise.inject.spi.ProcessSyntheticAnnotatedType&lt;X&gt;</literal>
-      for classes and interfaces added by <literal>BeforeBeanDiscovery.addAnnotatedType()</literal>.</para>
+      for types added by <literal>BeforeBeanDiscovery.addAnnotatedType()</literal>, 
+      <literal>BeforeBeanDiscovery.addInterceptorBinding()</literal>,
+      <literal>BeforeBeanDiscovery.addQualifier()</literal>, 
+      <literal>BeforeBeanDiscovery.addScope()</literal> or 
+      <literal>BeforeBeanDiscovery.addStereotype()</literal>.</para>
       
       <para>The annotation <literal>@WithAnnotations</literal> may be applied to the event parameter.  
       If the annotation is applied, the container must only deliver <literal>ProcessAnnotatedType</literal> 
@@ -1315,10 +1406,11 @@ public BeanAttributes<?> createBeanAttributes(AnnotatedMember<?> member);]]></pr
     <section id="pit">
       <title><literal>ProcessInjectionTarget</literal> event</title>
       
-      <para>The container must fire an event for every Java EE component class supporting 
-      injection that may be instantiated by the container at runtime, including every 
-      managed bean declared using <literal>@ManagedBean</literal>, EJB session or 
-      message-driven bean, enabled bean, enabled interceptor or enabled decorator.</para>
+      <para>The container must fire an event for every enum and every Java EE component
+      class supporting injection that may be instantiated by the container at runtime, 
+      including every managed bean declared using <literal>@ManagedBean</literal>, EJB
+      session or message-driven bean, enabled bean, enabled interceptor or enabled 
+      decorator.</para>
       
       <para>The event object must be of type 
       <literal>javax.enterprise.inject.spi.ProcessInjectionTarget&lt;X&gt;</literal>, 

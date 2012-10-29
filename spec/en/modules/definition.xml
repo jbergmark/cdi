@@ -34,7 +34,7 @@
     </listitem>
 
     <listitem>
-      <para>Optionally, a bean EL name</para>
+      <para>Optionally, a bean name</para>
     </listitem>
 
     <listitem>
@@ -88,7 +88,7 @@
     </listitem>
 
     <listitem>
-      <para>scoped resolution by name when used in a Unified EL expression,
+      <para>scoped resolution by bean name when used in a Unified EL expression,
       as defined by <xref linkend="nameresolution"/>,</para>
     </listitem>
 
@@ -358,9 +358,9 @@ public class Order { ... }</programlisting>
     <section id="definingqualifiertypes">
       <title>Defining new qualifier types</title>
 
-      <para>A qualifier type is a Java annotation defined as
-      <literal>@Target({METHOD, FIELD, PARAMETER, TYPE})</literal> and
-      <literal>@Retention(RUNTIME)</literal>.</para>
+      <para>A qualifier type is a Java annotation defined as 
+      <literal>@Retention(RUNTIME)</literal>. Typically a qualifier type
+      is defined as <literal>@Target({METHOD, FIELD, PARAMETER, TYPE})</literal>.</para>
       
       <para>A qualifier type may be declared by specifying the 
       <literal>@javax.inject.Qualifier</literal> meta-annotation.</para>
@@ -557,9 +557,9 @@ List&lt;Order&gt; getOrderSearchResults() { ... }</programlisting>
       <title>Defining new scope types</title>
 
       <para>A scope type is a Java annotation defined as
-      <literal>@Target({TYPE, METHOD, FIELD})</literal> and
-      <literal>@Retention(RUNTIME)</literal>. All scope types must also specify 
-      the <literal>@javax.inject.Scope</literal> or 
+      <literal>@Retention(RUNTIME)</literal>. Typically a scope type is defined 
+      as <literal>@Target({TYPE, METHOD, FIELD})</literal>. All scope types must 
+      also specify the <literal>@javax.inject.Scope</literal> or 
       <literal>@javax.enterprise.context.NormalScope</literal>
       meta-annotation.</para>
       
@@ -651,65 +651,66 @@ public class Order { ... }</programlisting>
   </section>
 
   <section id="names">
-    <title>Bean EL names</title>
+    <title>Bean names</title>
 
-    <para>A bean may have a <emphasis>bean EL name</emphasis>. A bean with 
-    an EL name may be referred to by its name in Unified EL expressions. A 
-    valid bean EL name is a period-separated list of valid EL identifiers.</para>
+    <para>A bean may have a <emphasis>bean name</emphasis>. A bean with a name may be
+    referred to by its name in Unified EL expressions. A valid bean name is a 
+    period-separated list of valid EL identifiers.</para>
     
-    <para>The following strings are valid EL names:</para>
+    <para>The following strings are valid bean names:</para>
     
     <programlisting>org.mydomain.myapp.settings</programlisting>
     <programlisting>orderManager</programlisting>
     
-    <para>There is no relationship between the EL name of a session bean and 
-    the EJB name of the bean.</para>
+    <para>There is no relationship between the bean name of a session bean and the 
+    EJB name of the bean.</para>
 
     <para>Subject to the restrictions defined in <xref linkend="ambignames"/>, 
-    multiple beans may share the same EL name.</para>
+    multiple beans may share the same bean name.</para>
     
-    <para>Bean EL names allow the direct use of beans in JSP or JSF pages, as 
-    defined in <xref linkend="el"/>. For example, a bean with the name 
+    <para>Bean names allow the direct use of beans in JSP or JSF pages, as defined
+    in <xref linkend="el"/>. For example, a bean with the name 
     <literal>products</literal> could be used like this:</para>
 
     <programlisting>&lt;h:outputText value="#{products.total}"/&gt;</programlisting>
       
-    <para>Bean EL names are used by the rules of EL name resolution defined in
+    <para>Bean names are used by the rules of EL name resolution defined in
     <xref linkend="nameresolution"/>.</para>
     
     <section>
-      <title>Declaring the bean EL name</title>
+      <title>Declaring the bean name</title>
 
-      <para>To specify the EL name of a bean, the qualifier 
+      <para>To specify the name of a bean, the qualifier 
       <literal>@javax.inject.Named</literal> is applied to the bean class or 
       producer method or field. This bean is named <literal>currentOrder</literal>:</para>
 
       <programlisting>@Named("currentOrder")
 public class Order { ... }</programlisting>
 
-      <para>If the <literal>@Named</literal> annotation does not specify the
-      <literal>value</literal> member, the EL name is defaulted.</para>
-      
     </section>
 
     <section id="defname">
-      <title>Default bean EL names</title>
+      <title>Default bean names</title>
       
-      <para>In the following circumstances, a <emphasis>default EL name</emphasis> 
+      <para>In the following circumstances, a <emphasis>default name</emphasis> 
       must be assigned by the container:</para>
       
       <itemizedlist>
       <listitem>
         <para>A bean class or producer method or field of a bean declares a 
-        <literal>@Named</literal> annotation and no EL name is explicitly 
+        <literal>@Named</literal> annotation and no bean name is explicitly
         specified by the <literal>value</literal> member.</para>
       </listitem>
       <listitem>
         <para>A bean declares a stereotype that declares an empty 
         <literal>@Named</literal> annotation, and the bean does not 
-        explicitly specify an EL name.</para>
+        explicitly specify a bean name.</para>
       </listitem>
       </itemizedlist>
+
+      <para>If a bean class or producer method or field of a bean declares a 
+      <literal>@Named</literal> annotation and no bean name is explicitly specified
+      the value of the <literal>value</literal> member is defaulted.</para>
       
       <para>The default name for a bean depends upon the kind of the bean.
       The rules for determining the default name for a bean are defined in 
@@ -720,10 +721,10 @@ public class Order { ... }</programlisting>
     </section>
 
     <section>
-      <title>Beans with no EL name</title>
+      <title>Beans with no name</title>
       
       <para>If <literal>@Named</literal> is not declared by the bean, nor by 
-      its stereotypes, a bean has no EL name.</para>
+      its stereotypes, a bean has no name.</para>
 
       <para>If an interceptor or decorator has a name, non-portable behavior 
       results.</para>
@@ -783,7 +784,7 @@ public class MockOrder extends Order { ... }</programlisting>
     
     <itemizedlist>
       <listitem>
-        <para>all beans with the stereotype have defaulted bean EL names, 
+        <para>all beans with the stereotype have defaulted bean names, 
         or that</para>
       </listitem>
       <listitem>
@@ -796,10 +797,12 @@ public class MockOrder extends Order { ... }</programlisting>
     <section>
       <title>Defining new stereotypes</title>
       
-      <para>A bean stereotype is a Java annotation defined as
-      <literal>@Target({TYPE, METHOD, FIELD})</literal>, <literal>@Target(TYPE)</literal>,
-      <literal>@Target(METHOD)</literal>, <literal>@Target(FIELD)</literal> or 
-      <literal>@Target({METHOD, FIELD})</literal> and <literal>@Retention(RUNTIME)</literal>.</para>
+      <para>A bean stereotype is a Java annotation defined as 
+      <literal>@Retention(RUNTIME)</literal>. Typically a bean stereotype is
+      defined as <literal>@Target({TYPE, METHOD, FIELD})</literal>,
+      <literal>@Target(TYPE)</literal>, <literal>@Target(METHOD)</literal>,
+      <literal>@Target(FIELD)</literal> or 
+      <literal>@Target({METHOD, FIELD})</literal>.</para>
       
       <para>A stereotype may be declared by specifying the 
       <literal>@javax.enterprise.inject.Stereotype</literal> 
@@ -857,13 +860,15 @@ public @interface Action {}</programlisting>
 
         <para>A stereotype may declare an empty <literal>@Named</literal> annotation,
         which specifies that every bean with the stereotype has a defaulted name when 
-        a name is not explicitly specified by the bean.</para>
+        a name is not explicitly specified by the bean. A <literal>@Named</literal> 
+        qualifier declared by a stereotype is not added to the qualifiers of a bean
+        with the stereotype.</para>
         
         <para>If a stereotype declares a non-empty <literal>@Named</literal>
         annotation, the container automatically detects the problem and treats it as 
         a definition error.</para>
       
-        <para>We may specify that all actions have names:</para>
+        <para>We may specify that all actions have bean names:</para>
       
         <programlisting>@RequestScoped
 @Secure
@@ -1013,6 +1018,54 @@ public @interface Model {}</programlisting>
     exceptions defined by this specification may be safely caught and handled by the 
     application.</para>
      
+  </section>
+
+  <section id="priorities">
+    <title>Priority ordering</title>
+
+    <para>Interceptors and decorators are called in a defined order. The order is specified
+    using a integer priority. Lower priority interceptors and decorators are called first. The
+    order of more than one interceptor or decorator with the same priority is undefined.</para>
+
+    <para>It is recommended that a priority of:</para>
+
+    <variablelist>
+      <varlistentry>
+        <term>0 - 99</term>
+        <listitem>
+          <para>is reserved for interceptors and decorators defined by this specification or the 
+          Java EE platform specification</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>100 - 999</term>
+        <listitem>
+          <para>is reserved for interceptors and decorators defined by extension libraries</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>1000 - 1999</term>
+        <listitem>
+          <para>is reserved for interceptors and decorators defined by applications</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>2000 - 2999</term>
+        <listitem>
+          <para>is reserved for interceptors and decorators defined by extension libraries</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>3000 - 3099</term>
+        <listitem>
+          <para>is reserved for interceptors and decorators defined by this specification or the 
+          Java EE platform specification</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>OPEN ISSUE: Is priority the right name for this?</para>
+
   </section>
 
 </chapter>

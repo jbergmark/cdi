@@ -22,7 +22,7 @@
   <para>References to contextual instances may also be obtained by 
   programmatic lookup or by Unified EL expression evaluation.</para>
 
-  <para>In general, a bean type or bean EL name does not uniquely identify a
+  <para>In general, a bean type or bean name does not uniquely identify a
   bean. When resolving a bean at an injection point, the container considers 
   bean type, qualifiers and alternative declarations in <literal>beans.xml</literal>. 
   When resolving a name in an EL expression, the container considers the bean 
@@ -68,36 +68,160 @@
     
     <section>
       <title>Declaring selected alternatives for a bean archive</title>
-    
-    <para>By default, a bean archive has no selected alternatives. An alternative must be 
-    explicitly declared using the <literal>&lt;alternatives&gt;</literal> element of the 
-    <literal>beans.xml</literal> file of the bean archive. The 
-    <literal>&lt;alternatives&gt;</literal> element contains a list of bean classes and 
-    stereotypes. An alternative is selected for the bean archive if either:</para>
-    
-    <itemizedlist>
-      <listitem>
-        <para>the alternative is a managed bean or session bean and the bean class of the
-        bean is listed,</para>
-      </listitem>
-      <listitem>
-        <para>the alternative is a producer method, field or resource, and the bean class 
-        that declares the method or field is listed, or</para>
-      </listitem>
-      <listitem>
-        <para>any <literal>@Alternative</literal> stereotype of the alternative is listed.</para>
-      </listitem>
-    </itemizedlist>
-    
-    <programlisting><![CDATA[<beans xmlns="http://java.sun.com/xml/ns/javaee"
+
+      <para>Alternatives may be selected for an application, or selected only for a 
+      particular bean archive.</para>
+
+      <para>An alternative may be selected for an application using the 
+      <literal>&lt;alternatives&gt;</literal> element of the 
+      <literal>beans.xml</literal> file of the bean archive that declares the 
+      alternative. The <literal>&lt;alternatives&gt;</literal> element contains a list 
+      of bean classes and stereotypes, along with a priority attribute. An alternative 
+      is selected for the entire application if either:</para>
+      
+      <itemizedlist>
+        <listitem>
+          <para>the alternative is a managed bean or session bean and the bean class of the
+          bean is listed, along with a priority attribute, or</para>
+        </listitem>
+        <listitem>
+          <para>the alternative is a producer method, field or resource, and the bean class 
+          that declares the method or field is listed, along with a priority attribute,
+          or</para>
+        </listitem>
+        <listitem>
+          <para>any <literal>@Alternative</literal> stereotype of the alternative is listed,
+          along with a priority attribute.</para>
+        </listitem>
+      </itemizedlist>
+
+      <programlisting><![CDATA[<beans xmlns="http://java.sun.com/xml/ns/javaee"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
    <alternatives>
-      <class>org.mycompany.myfwk.InMemoryDatabase</class>
-      <stereotype>org.mycompany.myfwk.Mock</stereotype>
+      <class priority="1000">org.mycompany.myfwk.InMemoryDatabase</class>
+      <stereotype priority="100">org.mycompany.myfwk.Mock</stereotype>
+   </alternatives>
+</beans>]]></programlisting>
+
+      <para>An alternative may be selected for a bean archive using the 
+      <literal>&lt;alternatives&gt;</literal> element of the 
+      <literal>beans.xml</literal> file of the bean archive. The 
+      <literal>&lt;alternatives&gt;</literal> element contains a list of bean classes and
+      stereotypes, along with a priority attribute. An alternative is selected for the 
+      bean archive if either:</para>
+      
+      <itemizedlist>
+        <listitem>
+          <para>the alternative is a managed bean or session bean and the bean class of the
+          bean is listed, or</para>
+        </listitem>
+        <listitem>
+          <para>the alternative is a producer method, field or resource, and the bean class 
+          that declares the method or field is listed, or</para>
+        </listitem>
+        <listitem>
+          <para>any <literal>@Alternative</literal> stereotype of the alternative is listed.</para>
+        </listitem>
+      </itemizedlist>
+
+      <programlisting><![CDATA[<beans xmlns="http://java.sun.com/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+   <alternatives>
       <stereotype>org.mycompany.site.Australian</stereotype>
    </alternatives>
 </beans>]]></programlisting>
+
+      <para>An alternative selected for an application may be deselected for a bean archive using
+      the <literal>&lt;alternatives&gt;</literal> element of the <literal>beans.xml</literal> 
+      file of the bean archive. The <literal>&lt;alternatives&gt;</literal> element contains a
+      list  of bean classes and stereotypes, along with a disabled flag. An alternative is 
+      not selected for the bean archive if either:</para>
+      
+      <itemizedlist>
+        <listitem>
+          <para>the alternative is a managed bean or session bean and the bean class of the
+          bean is listed, along with a disabled flag, or</para>
+        </listitem>
+        <listitem>
+          <para>the alternative is a producer method, field or resource, and the bean class 
+          that declares the method or field is listed, along with a disabled flag, or</para>
+        </listitem>
+        <listitem>
+          <para>any <literal>@Alternative</literal> stereotype of the alternative is listed,
+          along with a disabled flag.</para>
+        </listitem>
+      </itemizedlist>
+
+      <programlisting><![CDATA[<beans xmlns="http://java.sun.com/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+   <alternatives>
+      <stereotype enabled="false">org.mycompany.myfwk.Mock</stereotype>
+   </alternatives>
+</beans>]]></programlisting>
+
+      <para>An alternative may be given a default priority, but not selected for an
+      application using the <literal>&lt;alternatives&gt;</literal> element of the 
+      <literal>beans.xml</literal> file of the bean archive. The 
+      <literal>&lt;alternatives&gt;</literal> element contains a list of bean classes and
+      stereotypes, along with a disabled flag and a priority attribute. An alternative is
+      selected for the bean archive if either:</para>
+
+            
+      <itemizedlist>
+        <listitem>
+          <para>the alternative is a managed bean or session bean and the bean class of the
+          bean is listed, along with a disabled flag and a priority attribute, or</para>
+        </listitem>
+        <listitem>
+          <para>the alternative is a producer method, field or resource, and the bean class 
+          that declares the method or field is listed, along with a disabled flag and a 
+          priority attribute, or</para>
+        </listitem>
+        <listitem>
+          <para>any <literal>@Alternative</literal> stereotype of the alternative is listed,
+          along with a disabled flag and a priority attribute.</para>
+        </listitem>
+      </itemizedlist>
+
+      <programlisting><![CDATA[<beans xmlns="http://java.sun.com/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+   <alternatives>
+      <class priority="1000" enabled="false">org.mycompany.myfwk.InMemoryDatabase</class>
+   </alternatives>
+</beans>]]></programlisting>
+
+      <para>An alternative with a default priority may be selected for a bean archive using
+      the <literal>&lt;alternatives&gt;</literal> element of the <literal>beans.xml</literal> 
+      file of the bean archive. The <literal>&lt;alternatives&gt;</literal> element contains a
+      list of bean classes and stereotypes, along with an enabled flag. An alternative is 
+      selected for the bean archive if either:</para>
+      
+      <itemizedlist>
+        <listitem>
+          <para>the alternative is a managed bean or session bean and the bean class of the
+          bean is listed, along with an enabled flag, or</para>
+        </listitem>
+        <listitem>
+          <para>the alternative is a producer method, field or resource, and the bean class 
+          that declares the method or field is listed, along with an enabled flag, or</para>
+        </listitem>
+        <listitem>
+          <para>any <literal>@Alternative</literal> stereotype of the alternative is listed,
+          along with an enabled flag.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>OPEN ISSUE: Can other libraries deselect alternatives and change the 
+      priority? If so, which one wins?</para>
+
+      <para>OPEN ISSUE: If a library defines a selected or default priority alternative,
+      can it be disabled or enabled for the entire application?</para>
+
+      <para>OPEN ISSUE: Should we add a way to specify the priority by annotation?</para>      
 
     <para>Each child <literal>&lt;class&gt;</literal> element must specify the name of a 
     bean class of an alternative bean. If there is no bean whose bean class has the specified
@@ -247,7 +371,7 @@
       <literal>getQualifiers()</literal> to determine the bean types and qualifiers.</para>
     </section>
 
-      <section id="ambigdependencies">
+     <section id="ambigdependencies">
     <title>Unsatisfied and ambiguous dependencies</title>
   
     <para>An <emphasis>unsatisfied dependency</emphasis> exists at an injection
@@ -264,14 +388,16 @@
     alternatives, except for producer methods and fields of beans that are 
     alternatives. If there is exactly one bean remaining, the container will 
     select this bean, and the ambiguous dependency is called 
-    <emphasis>resolvable</emphasis>.</para>
+    <emphasis>resolvable</emphasis>. If all the beans left are alternatives with a
+    priority, then the container will select the alternative with the highest priority,
+    and the ambiguous dependency is called <emphasis>resolvable</emphasis>.</para>
 
-    <para>The container must validate all injection points of all enabled beans, all 
-    observer methods, all disposer methods and all other Java EE component classes 
-    supporting injection when the application is initialized to ensure that there 
-    are no unsatisfied or unresolvable ambiguous dependencies. If an unsatisfied or
-    unresolvable ambiguous dependency exists, the container automatically detects 
-    the problem and treats it as a deployment problem.</para>
+    <para>The container must validate all injection points of all enabled beans, all
+    enums, all observer methods, all disposer methods and all other Java EE component
+    classes supporting injection when the application is initialized to ensure that
+    there are no unsatisfied or unresolvable ambiguous dependencies. If an 
+    unsatisfied or unresolvable ambiguous dependency exists, the container 
+    automatically detects the problem and treats it as a deployment problem.</para>
     
     <para>For a custom implementation of the <literal>Bean</literal> interface
     defined in <xref linkend="bean"/>, the container calls 
@@ -445,20 +571,20 @@ public @interface PayBy {
 
     <para>The process of matching a bean to a name used in EL is called 
     <emphasis>name resolution</emphasis>. Since there is no typing information 
-    available in EL, the container may consider only the EL name. Name resolution 
+    available in EL, the container may consider only the bean name. Name resolution 
     usually occurs at runtime, during EL expression evaluation.</para>
 
     <para>An EL name resolves to a bean if:</para>
     
     <itemizedlist>
-      <listitem>the bean has the given EL name, and</listitem>
+      <listitem>the bean has the given bean name, and</listitem>
       <listitem>the bean is available for injection in the war containing
       the JSP or JSF page with the EL expression.</listitem>
     </itemizedlist>
     
     <para>For a custom implementation of the <literal>Bean</literal> interface
     defined in <xref linkend="bean"/>, the container calls <literal>getName()</literal> 
-    to determine the bean EL name.</para>
+    to determine the bean name.</para>
     
     <section id="ambignames">
       <title>Ambiguous EL names</title>
@@ -469,7 +595,9 @@ public @interface PayBy {
       beans that are not alternatives, except for producer methods and fields of 
       beans that are alternatives. If there is exactly one bean remaining, the 
       container will select this bean, and the ambiguous EL name is called 
-      <emphasis>resolvable</emphasis>.</para>
+      <emphasis>resolvable</emphasis>. If all the beans left are alternatives with a
+      priority, then the container will select the alternative with the highest priority,
+      and the ambiguous dependency is called <emphasis>resolvable</emphasis>.</para>
       
       <para>All unresolvable ambiguous EL names are detected by the container when
       the application is initialized. Suppose two beans are both available for 
@@ -477,13 +605,13 @@ public @interface PayBy {
       
       <itemizedlist>
         <listitem>
-          <para>the two beans have the same EL name and the name is not resolvable,
+          <para>the two beans have the same bean name and the name is not resolvable,
           or</para>
         </listitem>
         <listitem>
-          <para>the EL name of one bean is of the form <literal>x.y</literal>, 
-          where <literal>y</literal> is a valid bean EL name, and <literal>x</literal> 
-          is the EL name of the other bean,</para>
+          <para>the bean name of one bean is of the form <literal>x.y</literal>, 
+          where <literal>y</literal> is a valid bean name, and <literal>x</literal> 
+          is the bean name of the other bean,</para>
         </listitem>
       </itemizedlist>
       
@@ -550,37 +678,6 @@ public @interface PayBy {
     proxy object per bean. (However, this strategy is not required by this
     specification.)</para>
     
-    <section id="unproxyable">
-      <title>Unproxyable bean types</title>
-    
-      <para>Certain legal bean types cannot be proxied by the container:</para>
-    
-      <itemizedlist>
-        <listitem>
-          <para>classes which don't have a non-private constructor with no 
-          parameters,</para>
-        </listitem>
-        <listitem>
-          <para>classes which are declared final,</para>
-        </listitem>
-        <listitem>
-          <para>classes which have non-static, final methods with 
-          public, protected or default visibility,</para>
-        </listitem>
-        <listitem>
-          <para>primitive types,</para>
-        </listitem>
-        <listitem>
-          <para>and array types.</para>
-        </listitem>
-      </itemizedlist>
-    
-      <para>If an injection point whose declared type cannot be proxied by the 
-      container resolves to a bean with a normal scope, the container automatically 
-      detects the problem and treats it as a deployment problem.</para>
-    
-    </section>
-    
     <section>
       <title>Client proxy invocation</title>
       
@@ -640,16 +737,16 @@ public @interface PayBy {
         using <literal>@EJB</literal>),</para>
       </listitem>
       <listitem>
-        <para>non-contextual instances of managed beans,</para>
+        <para>non-contextual instances of managed beans, and</para>
       </listitem>
       <listitem>
         <para>instances of any other Java EE component class supporting 
-        injection, and</para>
-      </listitem>
-      <listitem>
-        <para>enums.</para>
+        injection.</para>
       </listitem>
     </itemizedlist>
+
+    <para>The container is also required to perform dependency injection at
+    application initialization for enums.</para>
     
     <para>A Java EE 5 container is not required to support injection for 
     non-contextual objects.</para>
@@ -677,8 +774,8 @@ public @interface PayBy {
       <title>Injection of fields and initializer methods</title>
 
       <para>When the container creates a new instance of a managed bean, session
-      bean, enum, or of any other Java EE component class supporting injection, the 
-      container must:</para>
+      bean, or of any other Java EE component class supporting injection, or 
+      injects an enum at application initialization the container must:</para>
       
       <itemizedlist>
         <listitem>
@@ -969,6 +1066,20 @@ public @interface PayBy {
       and type <literal>Decorator</literal> which can be injected into any decorator instance</listitem>
     </itemizedlist>
 
+    <para>Additionally, the container must provide beans allowing interceptors and decorators to obtain 
+    information about the beans they intercept and decorate:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>a bean with scope <literal>@Dependent</literal>, qualifier <literal>@Intercepted</literal> and
+        type <literal>Bean</literal> which can be injected into any interceptor instance, and</para>
+      </listitem>
+      <listitem>
+        <para>a bean with scope <literal>@Dependent</literal>, qualifier <literal>@Decorated</literal> and
+        type <literal>Bean</literal> which can be injected into any decorator instance.</para>
+      </listitem>
+    </itemizedlist>
+
     <para>These beans are passivation capable dependencies, as defined in 
     <xref linkend="passivationcapabledependency"/>.</para>
    
@@ -980,16 +1091,41 @@ public @interface PayBy {
     decorator instance, the container automatically detects the problem  and treats it as a definition
     error.</para>
 
+    <para>If a <literal>Bean</literal> instance with qualifier <literal>@Intercepted</literal> is injected
+    into a bean instance other than an interceptor instance, the container automatically detects the 
+    problem  and treats it as a definition error.</para>
+
+     <para>If a <literal>Bean</literal> instance with qualifier <literal>@Decorated</literal> is injected
+    into a bean instance other than a decorator instance, the container automatically detects the 
+    problem and treats it as a definition error.</para>
+
     <para>The injection of bean metadata is restricted. If:</para>
 
     <itemizedlist>
-      <listitem>the injection point is a field, an initializer method parameter or a bean constructor then
-      the type parameter of the injected <literal>Bean</literal>, <literal>Interceptor</literal> or 
-      <literal>Decorator</literal> must be the same as the type declaring the injection point</listitem>
-      <listitem>the injection point is a producer method parameter then the type parameter of the injected
-      <literal>Bean</literal> must be the same as the producer method return type</listitem>
-      <listitem>the injection point is a disposer method parameter then the type parameter of the injected
-      <literal>Bean</literal> must be the same as the disposed parameter</listitem>
+      <listitem>
+        <para>the injection point is a field, an initializer method parameter or a bean constructor, with 
+        qualifier <literal>@Default</literal>, then the type parameter of the injected 
+        <literal>Bean</literal>, <literal>Interceptor</literal> or <literal>Decorator</literal> must be the
+        same as the type declaring the injection point, or</para>
+      </listitem>
+      <listitem>
+        <para>the injection point is a field, an initializer method parameter or a bean constructor of an
+        interceptor, with qualifier <literal>@Intercepted</literal>, then the type parameter of the injected 
+        <literal>Bean</literal> must be an unbounded wildcard, or</para>
+      </listitem>
+      <listitem>
+        <para>the injection point is a field, an initializer method parameter or a bean constructor of a
+        decorator, with qualifier <literal>@Decorated</literal>, then the type parameter of the injected 
+        <literal>Bean</literal> must be the same as the delegate type, or</para>
+      </listitem>
+      <listitem>
+        <para>the injection point is a producer method parameter then the type parameter of the injected
+        <literal>Bean</literal> must be the same as the producer method return type, or</para>
+      </listitem>
+      <listitem>
+        <para>the injection point is a disposer method parameter then the type parameter of the injected
+        <literal>Bean</literal> must be the same as the disposed parameter.</para>
+      </listitem>
     </itemizedlist>
 
     <para>Otherwise, the container automatically detects the problem and treats it as a definition error.</para>
@@ -1088,6 +1224,8 @@ for (PaymentProcessor pp: anyPaymentProcessor) pp.test();
     
     public boolean isUnsatisfied();
     public boolean isAmbiguous();
+
+    public void destroy(T instance);
       
 }]]></programlisting>
 
@@ -1185,6 +1323,15 @@ for (PaymentProcessor pp: anyPaymentProcessor) pp.test();
       if there is more than one bean that has the required type and qualifiers and is 
       eligible for injection into the class into which the parent <literal>Instance</literal> 
       was injected, or <literal>false</literal> otherwise.</para>
+
+      <para>The method <literal>destroy()</literal> instructs the container to destroy the 
+      instance. The bean instance passed to <literal>destroy()</literal> should be a dependent
+      scoped bean instance, or a client proxy for a normal scoped bean. Applications are 
+      encouraged to always call <literal>destroy()</literal> when they no longer require an
+      instance obtained from <literal>Instance</literal>.</para>
+      
+      <para>OPEN ISSUE: If <literal>destroy()</literal> is called on an already destroyed instance,
+      should an <literal>IllegalStateException</literal> occur? Or nothing?</para>
       
       </section>
       
@@ -1205,7 +1352,7 @@ for (PaymentProcessor pp: anyPaymentProcessor) pp.test();
           <para>scope <literal>@Dependent</literal>,</para>
         </listitem>
         <listitem>
-          <para>no bean EL name, and</para>
+          <para>no bean name, and</para>
         </listitem>
         <listitem>
           <para>an implementation provided automatically by the container.</para>

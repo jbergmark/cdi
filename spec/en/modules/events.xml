@@ -41,14 +41,9 @@
       <para>An event type may not contain a type variable.</para>
             
       <para>An event qualifier type is just an ordinary qualifier type as specified in 
-      <xref linkend="definingqualifiertypes"/> with the exception that it may be
-      declared <literal>@Target({FIELD, PARAMETER})</literal>.</para>
-      
-      <para>More formally, an event qualifier type is a Java annotation defined as
-      <literal>@Target({FIELD, PARAMETER})</literal> or
-      <literal>@Target({METHOD, FIELD, PARAMETER, TYPE})</literal> and
-      <literal>@Retention(RUNTIME)</literal>. All event qualifier types must
-      specify the <literal>@javax.inject.Qualifier</literal> meta-annotation.</para>
+      <xref linkend="definingqualifiertypes"/>, typically defined as 
+      <literal>@Target({METHOD, FIELD, PARAMETER, TYPE})</literal> or
+      <literal>@Target({FIELD, PARAMETER})</literal>.</para>
       
       <para>Every event has the qualifier <literal>@javax.enterprise.inject.Any</literal>,
       even if it does not explicitly declare this qualifier.</para>
@@ -290,7 +285,10 @@ else {
       <xref linkend="observernotification"/>.</para>
       
       <para>If the runtime type of the event object contains a type variable, an 
-      <literal>IllegalArgumentException</literal> is thrown.</para> 
+      <literal>IllegalArgumentException</literal> is thrown.</para>
+
+      <para>If the runtime type of the event object is assignable to the type of a container 
+      lifecycle event, <literal>IllegalArgumentException</literal> is thrown.</para>
       
       </section>
       
@@ -311,7 +309,7 @@ else {
           <para>scope <literal>@Dependent</literal>,</para>
         </listitem>
         <listitem>
-          <para>no bean EL name, and</para>
+          <para>no bean name, and</para>
         </listitem>
         <listitem>
           <para>an implementation provided automatically by the container.</para>
@@ -533,9 +531,9 @@ else {
     
       <para>For a custom implementation of the <literal>ObserverMethod</literal>
       interface defined in <xref linkend="observermethod"/>, the container must
-      call <literal>getReception()</literal> and <literal>getTransactionPhase()</literal>
-      to determine if the observer method is a conditional or transactional observer
-      method, and <literal>notify()</literal> to invoke the method.</para>
+      call <literal>getTransactionPhase()</literal> to determine if the observer
+      method is transactional observer method, and <literal>notify()</literal> 
+      to invoke the method.</para>
       
       <note>
          <para>CDI 1.1 implementations should call the <code>notify</code> method
